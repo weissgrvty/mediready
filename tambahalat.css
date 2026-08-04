@@ -1,0 +1,128 @@
+/* Reset Dasar */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body {
+    background-color: #f4f7fe;
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Container & Kartu Form */
+.container {
+    width: 100%;
+    max-width: 500px;
+}
+
+.card {
+    background-color: #ffffff;
+    padding: 35px 30px;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+}
+
+.card h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0d52a2;
+    margin-bottom: 6px;
+}
+
+.card p#formSub {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 25px;
+}
+
+/* Form Group & Input Styling */
+.form-group {
+    margin-bottom: 18px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
+    margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #333;
+    outline: none;
+    background-color: #fff;
+    transition: all 0.2s ease-in-out;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    border-color: #0d52a2;
+    box-shadow: 0 0 0 3px rgba(13, 82, 162, 0.15);
+}
+
+.form-group input::placeholder {
+    color: #aaa;
+}
+
+/* Button Group Styling */
+.button-group {
+    display: flex;
+    gap: 12px;
+    margin-top: 28px;
+}
+
+.button-group button {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s ease-in-out;
+}
+
+.button-group button.save {
+    background-color: #0d52a2;
+    color: #ffffff;
+}
+
+.button-group button.save:hover {
+    background-color: #083c79;
+}
+
+.button-group button.cancel {
+    background-color: #e4e8ee;
+    color: #555;
+}
+
+.button-group button.cancel:hover {
+    background-color: #d1d6de;
+    color: #333;
+}
+
+/* Responsif Mobile */
+@media (max-width: 480px) {
+    .card {
+        padding: 25px 20px;
+    }
+
+    .button-group {
+        flex-direction: column;
+    }
+}
