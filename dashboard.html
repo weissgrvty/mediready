@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediReady Dashboard</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="Css/dashboard.css">
+
+    <!-- Library untuk Export ke PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+        /* CSS Tambahan untuk Tombol Aksi, Papan Status, & Export PDF */
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #eee;
+        }
+
+        .btn-edit {
+            background-color: #f0a500;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 5px;
+            transition: background 0.2s;
+        }
+
+        .btn-edit:hover {
+            background-color: #d48800;
+        }
+
+        .btn-delete {
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .btn-delete:hover {
+            background-color: #cc0000;
+        }
+
+        .btn-export-pdf {
+            background-color: #10b981;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-export-pdf:hover {
+            background-color: #059669;
+        }
+
+        nav ul li {
+            cursor: pointer;
+        }
+
+        nav ul li.active {
+            font-weight: 700;
+            border-bottom: 3px solid #0d52a2;
+        }
+
+        nav ul li.btn-logout {
+            float: right;
+            color: #ff4d4d;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        nav ul li.btn-logout:hover {
+            color: #ff1a1a;
+        }
+
+        /* Style Tabel Generik */
+        .custom-table-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+
+        .custom-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .custom-table th {
+            background: #f4f7fe;
+            text-align: left;
+            color: #444;
+            padding: 12px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .custom-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .custom-table tr:hover {
+            background-color: #f9fafb;
+        }
+
+        .badge-status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        .badge-status.ready { background: #e6f9ed; color: #10b981; }
+        .badge-status.warning { background: #fffbe6; color: #f59e0b; }
+        .badge-status.expired { background: #fde8e8; color: #ef4444; }
+
+        .timeline-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 15px;
+            border-left: 2px solid #e0e0e0;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #0d52a2;
+        }
+
+        .timeline-time {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 3px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ================= HEADER ================= -->
+    <header>
+        <div class="logo">
+            <img src="Images/Logo.png" alt="Logo">
+            <div>
+                <h2>MediReady</h2>
+                <p>Monitoring Alat Emergency RU V Balikpapan</p>
+            </div>
+        </div>
+        <div class="tanggal">
+            <h3 id="currentDate">3 Agu 2026</h3>
+            <p id="subHeaderInfo">0 Unit • 0 Lokasi</p>
+        </div>
+    </header>
+
+    <!-- ================= NAVIGATION ================= -->
+    <nav>
+        <ul>
+            <li id="tabRingkasan" class="active" onclick="switchTab('ringkasan')">Ringkasan</li>
+            <li id="tabPapanStatus" onclick="switchTab('papanStatus')">Papan Status</li>
+            <li id="tabDaftarAlat" onclick="switchTab('daftarAlat')">Daftar Alat</li>
+            <li id="tabExpired" onclick="switchTab('expired')">Expired</li>
+            <li id="tabRiwayat" onclick="switchTab('riwayat')">Riwayat</li>
+            <!-- Tombol Logout -->
+            <li class="btn-logout" onclick="logout()">Logout</li>
+        </ul>
+    </nav>
+
+    <!-- ================= CONTENT ================= -->
+    <div class="container">
+
+        <!-- SUMMARY (Otomatis Terkalkulasi) -->
+        <div class="summary">
+            <div class="summary-card" onclick="switchTab('ringkasan')" style="cursor:pointer;">
+                <h2 id="totalAlat">0</h2>
+                <p>Total Alat</p>
+            </div>
+            <div class="summary-card ready-card" onclick="switchTab('ringkasan')" style="cursor:pointer;">
+                <h2 id="ready">0</h2>
+                <p>Ready</p>
+            </div>
+            <div class="summary-card warning-card" onclick="switchTab('expired')" style="cursor:pointer;">
+                <h2 id="warning">0</h2>
+                <p>Warning</p>
+            </div>
+            <div class="summary-card expired-card" onclick="switchTab('expired')" style="cursor:pointer;">
+                <h2 id="expired">0</h2>
+                <p>Expired</p>
+            </div>
+        </div>
+
+        <!-- SEARCH & TAMBAH ALAT -->
+        <div class="search-box" id="searchSection">
+            <input type="text" id="searchInput" placeholder="Cari lokasi, kode unit, atau petugas">
+            <button id="btnTambah" onclick="window.location.href='tambahalat.html'">
+                + Tambah Alat
+            </button>
+        </div>
+
+        <!-- FILTER (Tab Ringkasan) -->
+        <div class="filter" id="filterSection">
+            <div>
+                <label>Lokasi</label>
+                <select id="filterLokasi">
+                    <option value="">Semua Lokasi</option>
+                </select>
+            </div>
+            <div>
+                <label>Jenis Alat</label>
+                <select id="filterJenis">
+                    <option value="">Semua Jenis</option>
+                </select>
+            </div>
+            <div>
+                <label>Nama/Merk Alat</label>
+                <select id="filterMerk">
+                    <option value="">Semua Nama</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- CARD CONTAINER (Tab Ringkasan) -->
+        <div class="card-container" id="cardContainer">
+            <!-- Kartu alat di-render otomatis -->
+        </div>
+
+        <!-- PAPAN STATUS CONTAINER (Tab Papan Status) -->
+        <div id="papanStatusContainer" style="display: none;">
+            <div class="custom-table-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="color: #0d52a2; margin: 0;">Papan Status & Monitoring Alat</h3>
+                    <button class="btn-export-pdf" onclick="downloadPDF('papanStatusPDF', 'Laporan_Papan_Status_MediReady')">📄 Export PDF</button>
+                </div>
+                <div id="papanStatusPDF">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Kode Unit</th>
+                                <th>Lokasi</th>
+                                <th>Merk</th>
+                                <th>Masa Berlaku (Exp)</th>
+                                <th>Sisa Hari</th>
+                                <th>Status</th>
+                                <th>Petugas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bodyPapanStatus"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- DAFTAR ALAT CONTAINER (Tab Daftar Alat) -->
+        <div id="daftarAlatContainer" style="display: none;">
+            <div class="custom-table-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="color: #0d52a2; margin: 0;">Daftar Inventaris Seluruh Alat</h3>
+                    <button class="btn-export-pdf" onclick="downloadPDF('daftarAlatPDF', 'Inventaris_Alat_MediReady')">📄 Export PDF</button>
+                </div>
+                <div id="daftarAlatPDF">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Kode Unit</th>
+                                <th>Jenis</th>
+                                <th>Merk/Nama</th>
+                                <th>Lokasi</th>
+                                <th>Exp Date</th>
+                                <th>Petugas</th>
+                                <th class="no-pdf">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bodyDaftarAlat"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- EXPIRED CONTAINER (Tab Expired) -->
+        <div id="expiredContainer" style="display: none;">
+            <div class="custom-table-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="color: #ef4444; margin: 0;">Daftar Alat Expired & Warning</h3>
+                    <button class="btn-export-pdf" onclick="downloadPDF('expiredPDF', 'Laporan_Alat_Expired_MediReady')">📄 Export PDF</button>
+                </div>
+                <div id="expiredPDF">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>Kode Unit</th>
+                                <th>Lokasi</th>
+                                <th>Merk</th>
+                                <th>Tanggal Expired</th>
+                                <th>Status Hari</th>
+                                <th>Status</th>
+                                <th>Petugas</th>
+                                <th class="no-pdf">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bodyExpired"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIWAYAT CONTAINER (Tab Riwayat) -->
+        <div id="riwayatContainer" style="display: none;">
+            <div class="custom-table-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="color: #0d52a2; margin: 0;">Riwayat Aktivitas System</h3>
+                    <button class="btn-delete" onclick="halamanResetRiwayat()">Bersihkan Riwayat</button>
+                </div>
+                <ul class="timeline-list" id="listRiwayat">
+                    <!-- Log Riwayat di-render otomatis -->
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================= SCRIPT LOGIKA UTAMA ================= -->
+    <script>
+        // 1. PROTEKSI HALAMAN
+        if (sessionStorage.getItem('isLoggedIn') !== 'true') {
+            alert('Silakan login terlebih dahulu!');
+            window.location.href = 'login.html';
+        }
+
+        // 2. FUNGSI LOGOUT
+        function logout() {
+            if (confirm('Apakah Anda yakin ingin keluar?')) {
+                sessionStorage.removeItem('isLoggedIn');
+                sessionStorage.removeItem('username');
+                window.location.href = 'login.html';
+            }
+        }
+
+        // Data Default
+        const defaultData = [
+            { kode: "AED-01", lokasi: "New HSSE Lt 1", jenis: "AED", merk: "Zoll", expDate: "2027-07-28", petugas: "Reza" },
+            { kode: "AED-02", lokasi: "Shelter 209", jenis: "AED", merk: "Mindray", expDate: "2026-11-11", petugas: "Firman" },
+            { kode: "AED-03", lokasi: "New Lab Lt 1", jenis: "AED", merk: "Mindray", expDate: "2026-11-11", petugas: "Dahlan" },
+            { kode: "AED-04", lokasi: "SWD / CWI", jenis: "AED", merk: "Mindray", expDate: "2026-11-11", petugas: "Candra" },
+            { kode: "AED-05", lokasi: "Power Plant 2 Lt.2 - UTL", jenis: "AED", merk: "Philips", expDate: "2026-11-11", petugas: "Reza" },
+            { kode: "AED-06", lokasi: "Shelter 400", jenis: "AED", merk: "AED", expDate: "2026-11-11", petugas: "Dodi S" },
+            { kode: "AED-07", lokasi: "Fire Station Pintu V", jenis: "AED", merk: "Philips", expDate: "2026-11-11", petugas: "Lintang" },
+            { kode: "AED-08", lokasi: "Shelter Plant 8 - HCC", jenis: "AED", merk: "Philips", expDate: "2026-11-11", petugas: "Dodi A" },
+            { kode: "AED-09", lokasi: "Gedung Loading Master - OM Selatan", jenis: "AED", merk: "Philips", expDate: "2026-11-11", petugas: "Mahfud" }
+        ];
+
+        function loadDataAlat() {
+            const savedData = localStorage.getItem('mediReadyAlat');
+            if (!savedData) {
+                localStorage.setItem('mediReadyAlat', JSON.stringify(defaultData));
+                return defaultData;
+            }
+            return JSON.parse(savedData);
+        }
+
+        let dataAlat = loadDataAlat();
+
+        // SIMPAN / CATAT LOG RIWAYAT
+        function tambahRiwayat(pesan) {
+            const currentRiwayat = JSON.parse(localStorage.getItem('mediReadyRiwayat')) || [];
+            const timestamp = new Date().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+            currentRiwayat.unshift({ waktu: timestamp, aktivitas: pesan });
+            localStorage.setItem('mediReadyRiwayat', JSON.stringify(currentRiwayat));
+        }
+
+        function hitungSisaHari(targetDateStr) {
+            if (!targetDateStr) return 0;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const target = new Date(targetDateStr);
+            const diffTime = target - today;
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        function formatTanggal(dateStr) {
+            if (!dateStr) return "-";
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        // FUNGSI EXPORT KE PDF
+        function downloadPDF(elementId, filename) {
+            const element = document.getElementById(elementId);
+            
+            // Sembunyikan kolom aksi sementara sebelum generate PDF
+            const aksiColumns = element.querySelectorAll('.no-pdf');
+            aksiColumns.forEach(el => el.style.display = 'none');
+
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     `${filename}_${new Date().toISOString().slice(0, 10)}.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                // Tampilkan kembali kolom aksi setelah PDF diunduh
+                aksiColumns.forEach(el => el.style.display = '');
+            });
+        }
+
+        // FUNGSI HAPUS ALAT
+        function hapusAlat(index) {
+            const unitHapus = dataAlat[index];
+            if (confirm(`Apakah Anda yakin ingin menghapus unit ${unitHapus.kode}?`)) {
+                tambahRiwayat(`Menghapus alat unit ${unitHapus.kode} (${unitHapus.lokasi})`);
+                dataAlat.splice(index, 1);
+                localStorage.setItem('mediReadyAlat', JSON.stringify(dataAlat));
+                initFilters();
+                renderCurrentActiveTab();
+            }
+        }
+
+        // CONTROL ALL TABS
+        function switchTab(tabName) {
+            const tabs = ['tabRingkasan', 'tabPapanStatus', 'tabDaftarAlat', 'tabExpired', 'tabRiwayat'];
+            tabs.forEach(t => {
+                const el = document.getElementById(t);
+                if (el) el.classList.remove('active');
+            });
+
+            document.getElementById('filterSection').style.display = 'none';
+            document.getElementById('cardContainer').style.display = 'none';
+            document.getElementById('papanStatusContainer').style.display = 'none';
+            document.getElementById('daftarAlatContainer').style.display = 'none';
+            document.getElementById('expiredContainer').style.display = 'none';
+            document.getElementById('riwayatContainer').style.display = 'none';
+            document.getElementById('searchSection').style.display = 'flex';
+
+            if (tabName === 'papanStatus') {
+                document.getElementById('tabPapanStatus').classList.add('active');
+                document.getElementById('papanStatusContainer').style.display = 'block';
+                renderPapanStatus();
+            } else if (tabName === 'daftarAlat') {
+                document.getElementById('tabDaftarAlat').classList.add('active');
+                document.getElementById('daftarAlatContainer').style.display = 'block';
+                renderDaftarAlat();
+            } else if (tabName === 'expired') {
+                document.getElementById('tabExpired').classList.add('active');
+                document.getElementById('expiredContainer').style.display = 'block';
+                renderExpired();
+            } else if (tabName === 'riwayat') {
+                document.getElementById('tabRiwayat').classList.add('active');
+                document.getElementById('riwayatContainer').style.display = 'block';
+                document.getElementById('searchSection').style.display = 'none';
+                renderRiwayat();
+            } else {
+                document.getElementById('tabRingkasan').classList.add('active');
+                document.getElementById('filterSection').style.display = 'flex';
+                document.getElementById('cardContainer').style.display = 'grid';
+                renderDashboard();
+            }
+        }
+
+        function renderCurrentActiveTab() {
+            if (document.getElementById('tabPapanStatus').classList.contains('active')) renderPapanStatus();
+            else if (document.getElementById('tabDaftarAlat').classList.contains('active')) renderDaftarAlat();
+            else if (document.getElementById('tabExpired').classList.contains('active')) renderExpired();
+            else if (document.getElementById('tabRiwayat').classList.contains('active')) renderRiwayat();
+            else renderDashboard();
+        }
+
+        // 1. RENDER DASHBOARD RINGKASAN
+        function renderDashboard() {
+            const container = document.getElementById('cardContainer');
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            const filterLokasi = document.getElementById('filterLokasi').value;
+            const filterJenis = document.getElementById('filterJenis').value;
+            const filterMerk = document.getElementById('filterMerk').value;
+
+            container.innerHTML = '';
+
+            dataAlat.forEach((item, index) => {
+                const sisaHari = hitungSisaHari(item.expDate);
+                let statusClass = 'ready';
+                let statusText = 'Ready';
+
+                if (sisaHari < 0) { statusClass = 'expired'; statusText = 'Expired'; }
+                else if (sisaHari <= 30) { statusClass = 'warning'; statusText = 'Warning'; }
+
+                const matchSearch = item.lokasi.toLowerCase().includes(searchInput) ||
+                                    item.kode.toLowerCase().includes(searchInput) ||
+                                    item.petugas.toLowerCase().includes(searchInput);
+                const matchLokasi = filterLokasi === '' || item.lokasi === filterLokasi;
+                const matchJenis = filterJenis === '' || (item.jenis || "AED") === filterJenis;
+                const matchMerk = filterMerk === '' || item.merk === filterMerk;
+
+                if (matchSearch && matchLokasi && matchJenis && matchMerk) {
+                    const badgeText = sisaHari < 0 ? 'Expired' : `${sisaHari} Hari Lagi`;
+                    const iconHeart = item.kode === "AED-01" ? "❤️ " : "";
+
+                    const cardHTML = `
+                        <div class="alat-card">
+                            <div class="card-header">
+                                <span>${item.kode}</span>
+                                <span class="status ${statusClass}">${statusText}</span>
+                            </div>
+                            <h3>${item.lokasi}</h3>
+                            <p>${iconHeart}${item.jenis || 'AED'} • ${item.merk}</p>
+                            <div class="expired">
+                                <span>Exp ${formatTanggal(item.expDate)}</span>
+                                <span class="badge ${statusClass}">${badgeText}</span>
+                            </div>
+                            <div class="card-footer">
+                                <p style="margin:0;">Petugas : ${item.petugas}</p>
+                                <div>
+                                    <button class="btn-edit" onclick="window.location.href='tambahalat.html?editIndex=${index}'">Edit</button>
+                                    <button class="btn-delete" onclick="hapusAlat(${index})">Hapus</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += cardHTML;
+                }
+            });
+            updateSummaryCounts();
+        }
+
+        // 2. RENDER PAPAN STATUS
+        function renderPapanStatus() {
+            const tbody = document.getElementById('bodyPapanStatus');
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            tbody.innerHTML = '';
+
+            dataAlat.forEach((item, index) => {
+                const sisaHari = hitungSisaHari(item.expDate);
+                let statusClass = 'ready';
+                let statusText = 'Ready';
+
+                if (sisaHari < 0) { statusClass = 'expired'; statusText = 'Expired'; }
+                else if (sisaHari <= 30) { statusClass = 'warning'; statusText = 'Warning'; }
+
+                const matchSearch = item.lokasi.toLowerCase().includes(searchInput) ||
+                                    item.kode.toLowerCase().includes(searchInput) ||
+                                    item.petugas.toLowerCase().includes(searchInput);
+
+                if (matchSearch) {
+                    const sisaHariText = sisaHari < 0 ? `${Math.abs(sisaHari)} Hari Lalu` : `${sisaHari} Hari`;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td><strong>${item.kode}</strong></td>
+                            <td>${item.lokasi}</td>
+                            <td>${item.merk}</td>
+                            <td>${formatTanggal(item.expDate)}</td>
+                            <td>${sisaHariText}</td>
+                            <td><span class="badge-status ${statusClass}">${statusText}</span></td>
+                            <td>${item.petugas}</td>
+                        </tr>
+                    `;
+                }
+            });
+            updateSummaryCounts();
+        }
+
+        // 3. RENDER DAFTAR ALAT
+        function renderDaftarAlat() {
+            const tbody = document.getElementById('bodyDaftarAlat');
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            tbody.innerHTML = '';
+
+            dataAlat.forEach((item, index) => {
+                const matchSearch = item.lokasi.toLowerCase().includes(searchInput) ||
+                                    item.kode.toLowerCase().includes(searchInput) ||
+                                    item.petugas.toLowerCase().includes(searchInput);
+
+                if (matchSearch) {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td><strong>${item.kode}</strong></td>
+                            <td>${item.jenis || 'AED'}</td>
+                            <td>${item.merk}</td>
+                            <td>${item.lokasi}</td>
+                            <td>${formatTanggal(item.expDate)}</td>
+                            <td>${item.petugas}</td>
+                            <td class="no-pdf">
+                                <button class="btn-edit" onclick="window.location.href='tambahalat.html?editIndex=${index}'">Edit</button>
+                                <button class="btn-delete" onclick="hapusAlat(${index})">Hapus</button>
+                            </td>
+                        </tr>
+                    `;
+                }
+            });
+            updateSummaryCounts();
+        }
+
+        // 4. RENDER EXPIRED (Expired & Warning)
+        function renderExpired() {
+            const tbody = document.getElementById('bodyExpired');
+            const searchInput = document.getElementById('searchInput').value.toLowerCase();
+            tbody.innerHTML = '';
+
+            let counter = 1;
+            dataAlat.forEach((item, index) => {
+                const sisaHari = hitungSisaHari(item.expDate);
+                
+                if (sisaHari <= 30) {
+                    let statusClass = sisaHari < 0 ? 'expired' : 'warning';
+                    let statusText = sisaHari < 0 ? 'Expired' : 'Warning';
+
+                    const matchSearch = item.lokasi.toLowerCase().includes(searchInput) ||
+                                        item.kode.toLowerCase().includes(searchInput) ||
+                                        item.petugas.toLowerCase().includes(searchInput);
+
+                    if (matchSearch) {
+                        const sisaHariText = sisaHari < 0 ? `${Math.abs(sisaHari)} Hari Lewat` : `${sisaHari} Hari Lagi`;
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>${counter++}</td>
+                                <td><strong>${item.kode}</strong></td>
+                                <td>${item.lokasi}</td>
+                                <td>${item.merk}</td>
+                                <td>${formatTanggal(item.expDate)}</td>
+                                <td>${sisaHariText}</td>
+                                <td><span class="badge-status ${statusClass}">${statusText}</span></td>
+                                <td>${item.petugas}</td>
+                                <td class="no-pdf">
+                                    <button class="btn-edit" onclick="window.location.href='tambahalat.html?editIndex=${index}'">Edit</button>
+                                    <button class="btn-delete" onclick="hapusAlat(${index})">Hapus</button>
+                                </td>
+                            </tr>
+                        `;
+                    }
+                }
+            });
+            updateSummaryCounts();
+        }
+
+        // 5. RENDER RIWAYAT AKTIVITAS
+        function renderRiwayat() {
+            const list = document.getElementById('listRiwayat');
+            const dataRiwayat = JSON.parse(localStorage.getItem('mediReadyRiwayat')) || [
+                { waktu: "Sistem", aktivitas: "Sistem MediReady Pertama Kali Dijalankan" }
+            ];
+
+            list.innerHTML = '';
+            dataRiwayat.forEach(item => {
+                list.innerHTML += `
+                    <li class="timeline-item">
+                        <div class="timeline-time">${item.waktu}</div>
+                        <div>${item.aktivitas}</div>
+                    </li>
+                `;
+            });
+        }
+
+        function halamanResetRiwayat() {
+            if (confirm('Bersihkan seluruh log riwayat?')) {
+                localStorage.removeItem('mediReadyRiwayat');
+                renderRiwayat();
+            }
+        }
+
+        // UPDATE RINGKASAN DATA
+        function updateSummaryCounts() {
+            let countReady = 0;
+            let countWarning = 0;
+            let countExpired = 0;
+
+            dataAlat.forEach(item => {
+                const sisaHari = hitungSisaHari(item.expDate);
+                if (sisaHari < 0) countExpired++;
+                else if (sisaHari <= 30) countWarning++;
+                else countReady++;
+            });
+
+            document.getElementById('totalAlat').innerText = dataAlat.length;
+            document.getElementById('ready').innerText = countReady;
+            document.getElementById('warning').innerText = countWarning;
+            document.getElementById('expired').innerText = countExpired;
+
+            const totalLokasi = new Set(dataAlat.map(i => i.lokasi)).size;
+            document.getElementById('subHeaderInfo').innerText = `${dataAlat.length} Unit • ${totalLokasi} Lokasi`;
+        }
+
+        // FUNGSI ISI DROPDOWN FILTER
+        function initFilters() {
+            const selectLokasi = document.getElementById('filterLokasi');
+            const selectJenis = document.getElementById('filterJenis');
+            const selectMerk = document.getElementById('filterMerk');
+
+            selectLokasi.innerHTML = '<option value="">Semua Lokasi</option>';
+            selectJenis.innerHTML = '<option value="">Semua Jenis</option>';
+            selectMerk.innerHTML = '<option value="">Semua Nama</option>';
+
+            const lokasiSet = [...new Set(dataAlat.map(i => i.lokasi))];
+            const jenisSet = [...new Set(dataAlat.map(i => i.jenis || 'AED'))];
+            const merkSet = [...new Set(dataAlat.map(i => i.merk))];
+
+            lokasiSet.forEach(loc => selectLokasi.innerHTML += `<option value="${loc}">${loc}</option>`);
+            jenisSet.forEach(jns => selectJenis.innerHTML += `<option value="${jns}">${jns}</option>`);
+            merkSet.forEach(mrk => selectMerk.innerHTML += `<option value="${mrk}">${mrk}</option>`);
+        }
+
+        // LISTENERS
+        document.getElementById('searchInput').addEventListener('input', renderCurrentActiveTab);
+        document.getElementById('filterLokasi').addEventListener('change', renderDashboard);
+        document.getElementById('filterJenis').addEventListener('change', renderDashboard);
+        document.getElementById('filterMerk').addEventListener('change', renderDashboard);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const today = new Date();
+            document.getElementById('currentDate').innerText = today.toLocaleDateString('id-ID', {
+                day: 'numeric', month: 'short', year: 'numeric'
+            });
+
+            initFilters();
+            renderDashboard();
+        });
+    </script>
+</body>
+
+</html>

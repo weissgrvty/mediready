@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<link rel="stylesheet" href="Css/tambahalat.css">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Alat - MediReady</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="Css/form.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="card">
+            <h1 id="formTitle">Tambah Data Alat Emergency</h1>
+            <p id="formSub">Silakan lengkapi data AED di bawah ini.</p>
+
+            <form id="formAlat">
+                <div class="form-group">
+                    <label>Kode AED</label>
+                    <input type="text" id="kode" placeholder="Contoh : AED-10" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Lokasi</label>
+                    <input type="text" id="lokasi" placeholder="Contoh : Shelter Plant 8" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Merk</label>
+                    <select id="merk" required>
+                        <option value="Zoll">Zoll</option>
+                        <option value="Philips">Philips</option>
+                        <option value="Mindray">Mindray</option>
+                        <option value="Schiller">Schiller</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Petugas</label>
+                    <input type="text" id="petugas" placeholder="Nama Petugas" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Tanggal Expired</label>
+                    <input type="date" id="expired" required>
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="save" id="btnSimpan">Simpan</button>
+                    <button type="button" class="cancel" onclick="window.location.href='dashboard.html'">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const editIndex = urlParams.get('editIndex');
+
+        let listAlat = JSON.parse(localStorage.getItem('mediReadyAlat')) || [];
+
+        // Mode EDIT
+        if (editIndex !== null && listAlat[editIndex]) {
+            const dataToEdit = listAlat[editIndex];
+
+            document.getElementById('formTitle').innerText = "Edit Data Alat Emergency";
+            document.getElementById('formSub').innerText = "Silakan perbarui data alat di bawah ini.";
+
+            document.getElementById('kode').value = dataToEdit.kode;
+            document.getElementById('lokasi').value = dataToEdit.lokasi;
+            document.getElementById('merk').value = dataToEdit.merk;
+            document.getElementById('petugas').value = dataToEdit.petugas;
+            document.getElementById('expired').value = dataToEdit.expDate;
+        }
+
+        // Submit Form
+        document.getElementById('formAlat').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const dataBaru = {
+                kode: document.getElementById('kode').value,
+                lokasi: document.getElementById('lokasi').value,
+                jenis: "AED",
+                merk: document.getElementById('merk').value,
+                expDate: document.getElementById('expired').value,
+                petugas: document.getElementById('petugas').value
+            };
+
+            if (editIndex !== null) {
+                listAlat[editIndex] = dataBaru;
+                alert('Data alat berhasil diperbarui!');
+            } else {
+                listAlat.push(dataBaru);
+                alert('Data alat berhasil ditambahkan!');
+            }
+
+            localStorage.setItem('mediReadyAlat', JSON.stringify(listAlat));
+            window.location.href = 'dashboard.html';
+        });
+    </script>
+</body>
+
+</html>
